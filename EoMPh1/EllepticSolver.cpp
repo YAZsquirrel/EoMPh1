@@ -149,7 +149,7 @@ void ElipticEquation::Init()
    std::ifstream mesh("Mesh.txt");
    
    mesh >> size >> nx >> ny; 
-   offset = nx - 1;
+   offset = nx;
    A = new real*[5];
    b = new real[size]{};
    x = new real[2];

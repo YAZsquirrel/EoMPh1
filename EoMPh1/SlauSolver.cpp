@@ -9,7 +9,7 @@ real Matrix::iteration(real* x_k, int i)
    sum += 1 <= i ? Mat[3][i - 1] * x_k[i - 1] : 0; 
    sum += m <= i ? Mat[4][i - m] * x_k[i - m] : 0; 
 
-   return x_k[i] + w * (b[i] - sum) / Mat[2][i];
+   return Mat[2][i] ? x_k[i] + (w * (b[i] - sum) / Mat[2][i]) : 0;
 }
 
 void Matrix::Gauss(real **A, real *b, int n, int offset)
@@ -47,7 +47,7 @@ real Matrix::discrepancy()
       sum2 += n - 1 > i ? Mat[1][i] * x[i + 1] : 0;
       sum2 += Mat[2][i] * x[i];
       sum2 += 1 <= i ? Mat[3][i - 1] * x[i - 1] : 0;
-      sum2 += m <= i ? Mat[4][i - m] * x[i - m] : 0;
+      sum2 += m<= i ? Mat[4][i - m] * x[i - m] : 0;
 
       sum += (b[i] - sum2) * (b[i] - sum2);
       sum2 = 0;
