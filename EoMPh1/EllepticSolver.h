@@ -13,8 +13,8 @@ private:
 #else // DYNAMIC_MESH
    real *hx, *hy; // шаги; динамическая сетка (nx, ny)
 #endif
-   real *x, *y; //???
-   real **xy;
+   real *x, *y; //   x0 - левая граница, y0 - нижная, x1 - правая, y1 - верхняя
+   real xb, yb;      // границы "вырезанного" прямоугольника
    size_t nx, ny;		// количество узлов на прямой
    std::vector<real> mesh;
    real gamma = 1, lam = 1;
