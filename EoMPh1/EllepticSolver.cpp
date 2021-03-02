@@ -30,7 +30,7 @@ void ElipticEquation::UchetKraevyh()
    inner_hor = j == nyb && i >= nxb; inner_vert = i == nxb && j >= nyb;
 
    kray1 = left || right || top || bottom || ((inner_hor || inner_vert) && !(inner_hor && inner_vert)) ;                      //corner
-   kray2 = !(((left || right) && (top || bottom)) || ((right && inner_hor) || (top || inner_vert))) && kray1;      //side
+   kray2 = !(((left || right) && (top || bottom)) || ((right && inner_hor) || (top && inner_vert))) && kray1;      //side
    
    if(kray1) //&& !kray2)
    {
