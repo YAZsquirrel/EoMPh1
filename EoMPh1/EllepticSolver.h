@@ -17,7 +17,7 @@ private:
    real xb, yb;      // границы "вырезанного" прямоугольника
    size_t nx, ny;		// количество узлов на прямой
    std::vector<real> mesh;
-   real gamma = 1, lam = 1;
+   real gamma = 1, lam = 1, theta = 1;
    real PrimeApproxX();	// Приближение производных
    real PrimeApproxY();
    real LaplasApprox();
@@ -33,6 +33,6 @@ public:
 
    real* b;	// вектор правой части (nx*ny)
    real** A; // глобальная матрица (nx*ny)*(nx*ny) (хотя, учитывая, что всего диагоналей 5, то (5*nx*ny))
-   size_t size = 0;    // колво узлов
-   size_t offset = 0; // количество узлов вдоль оси x
+   int size = 0;    // колво узлов
+   int offset = 0; // количество узлов вдоль оси x
 };

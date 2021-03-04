@@ -4,9 +4,11 @@ real ElipticEquation::f(int i, int j)
 {
    real x1 = x0 + i * hx;
    real y1 = y0 + j * hy;
+   //return 1;
+   return x1 + y1 - 2;
    //return x1 * x1 + y1 * y1 - 4;                                                // u^2
    //return  x1 * x1 * x1 + y1 * y1 * y1 - 6 * (x1 + y1) ;                       // u^3
-   return x1 * x1 * x1 * x1 + y1 * y1 * y1 * y1 - 12 * (x1 * x1 + y1 * y1);    // u^4
+   //return x1 * x1 * x1 * x1 + y1 * y1 * y1 * y1 - 12 * (x1 * x1 + y1 * y1);    // u^4
 }
 
 void ElipticEquation::UchetKraevyh()
@@ -31,7 +33,7 @@ void ElipticEquation::UchetKraevyh()
          kray2 = !(((left || right) && (top || bottom)) || ((right && inner_hor) || (top && inner_vert))) && kray1;      //side
             //  не на углах большого прямоугольника(без выреза) и не на углах, вырезанные малым треугольником, но на краях 
 
-         if(kray1)
+         if(kray1 && !kray2)
          {
 
             if (t < size - offset) A[0][t] =          0.;
@@ -45,20 +47,25 @@ void ElipticEquation::UchetKraevyh()
          if(kray2){ 
             if (left)
             {
-                A[3][t + 1] = (-1 / hx);//-du/dx // t -> t+1 (->)// 
+                A[2][t] = (lam / hx);
+                A[3][t + 1] = (-lam / hx);//-du/dx // t -> t+1 (->)// 
             }
             else if(right || inner_vert)
             {
-                A[1][t - 1] = (1 / hx);//du/dx // t -> t-1 (<-) // 
+                A[2][t] = (-lam / hx);
+                A[1][t - 1] = (lam / hx);//du/dx // t -> t-1 (<-) // 
             }
             else if(top || inner_hor)
             { 
-                A[0][t] = (1 / hy);//du/dy // t -> t - nx (v)// A[0][t] = du/dy (1/hy) 
+                A[2][t] = (-lam / hy);
+                A[0][t] = (lam / hy);//du/dy // t -> t - nx (v)// A[0][t] = du/dy (1/hy) 
             }
             else if (bottom)
             {
-                A[4][t] = (-1 / hy);//-du/dy // t -> t + nx (^)// A[4][t] = -du/dy (-1/hy) 
+                A[2][t] = (lam / hy);
+                A[4][t] = (-lam / hy);//-du/dy // t -> t + nx (^)// A[4][t] = -du/dy (-1/hy) 
             }
+            b[t] = theta;
          }
       }
    }
@@ -70,9 +77,11 @@ real ElipticEquation::ug(int i, int j)
       return 0.;
    real x1 = x0 + i * hx;
    real y1 = y0 + j * hy;
+   //return 1;
+   return x1 + y1;
    //return x1 * x1 + y1 * y1;                              // u^2
    //return x1 * x1 * x1 + y1 * y1 * y1;                    // u^3
-   return x1 * x1 * x1 * x1 + y1 * y1 * y1 * y1;          // u^4
+   //return x1 * x1 * x1 * x1 + y1 * y1 * y1 * y1;          // u^4
 }
 
 void ElipticEquation::CheckError()
