@@ -127,8 +127,8 @@ void ElipticEquation::CreateA()
 
    UchetKraevyh();
 
-   for (size_t i = 0; i < size; i++)
-      std::cout << b[i] << '\n';
+ //  for (size_t i = 0; i < size; i++)
+ //     std::cout << b[i] << '\n';
 
 #if !DYNAMIC_MESH
 #else // DYNAMIC_MESH
