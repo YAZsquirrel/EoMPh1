@@ -2,13 +2,38 @@
 
 real ElipticEquation::f(int i, int j)
 {
-   real x1 = x0 + i * hx;
-   real y1 = y0 + j * hy;
-   //return 1;
-   return x1 + y1 - 2;
-   //return x1 * x1 + y1 * y1 - 4;                                                // u^2
-   //return  x1 * x1 * x1 + y1 * y1 * y1 - 6 * (x1 + y1) ;                       // u^3
-   //return x1 * x1 * x1 * x1 + y1 * y1 * y1 * y1 - 12 * (x1 * x1 + y1 * y1);    // u^4
+   real x = x0 + i * hx;
+   real y = y0 + j * hy;
+   //return 1;                                                         // u^0
+   //return x + y;                                                     // u^1
+   //return x * x + y * y - 4;                                         // u^2
+   //return x * x * x + y * y * y - 6 * (x + y) ;                      // u^3
+   return x * x * x * x + y * y * y * y - 12 * (x * x + y * y);      // u^4
+}
+
+
+real ElipticEquation::ug(int i, int j)
+{
+   if (x0 + i * hx > xb && y0 + j * hy > yb)
+      return 0.;
+   real x = x0 + i * hx;
+   real y = y0 + j * hy;
+   //return 1;                               // u^0
+   //return x + y;                           // u^1
+   //return x * x + y * y;                   // u^2
+   //return x * x * x + y * y * y;           // u^3
+   return x * x * x * x + y * y * y * y;   // u^4
+}
+
+real ElipticEquation::theta(int ij, bool xy)
+{
+   real th = xy ? x0 + ij * hx : y0 + ij * hy;
+
+   //return 0;                    // u^0
+   //return 1; // du/dn           // u^1
+   return 2 * th;               // u^2
+   //return 3 * th * th;          // u^3
+   //return 4 * th * th * th;     // u^4
 }
 
 void ElipticEquation::UchetKraevyh()
@@ -20,7 +45,7 @@ void ElipticEquation::UchetKraevyh()
    bool inner_vert, inner_hor; // |_
    bool kray1, kray2;
    
-   for (size_t t = 0; t < size; t++)
+   for (int t = 0; t < size; t++)
    {
       i = t % nx; j = t / nx;
       if (!(i > nxb && j > nyb))
@@ -29,59 +54,56 @@ void ElipticEquation::UchetKraevyh()
          top = j == ny - 1; bottom = j == 0;
          inner_hor = j == nyb && i >= nxb; inner_vert = i == nxb && j >= nyb;
 
-         kray1 = left || right || top || bottom || ((inner_hor || inner_vert) && !(inner_hor && inner_vert)) ;                      //corner
+         kray1 = left || right || top || bottom || ((inner_hor || inner_vert) && !(inner_hor && inner_vert)) ;           //corner
          kray2 = !(((left || right) && (top || bottom)) || ((right && inner_hor) || (top && inner_vert))) && kray1;      //side
-            //  не на углах большого прямоугольника(без выреза) и не на углах, вырезанные малым треугольником, но на краях 
+            //  не на углах большого прямоугольника(без выреза) и не на углах, вырезанные малым прямоугольником, но на краях 
 
-         if(kray1 && !kray2)
-         {
-
-            if (t < size - offset) A[0][t] =          0.;
-            if (t < size - 1)      A[1][t] =          0.;
-                                   A[2][t] =          1.;
-            if (t >= 1)            A[3][t - 1] =      0.;
-            if (t >= offset)       A[4][t - offset] = 0.;
-
+         if(kray1)
+         {     
+            if (t >= offset) A[0][t - offset] = 0.;
+            if (t >= 1)           A[1][t - 1] = 0.;
+                                      A[2][t] = 1.;
+            if (t < size - 1)         A[3][t] = 0.;
+            if (t  < size - offset)   A[4][t] = 0.;
+         
             b[t] = ug(i, j);
          }
-         if(kray2){ 
+
+         if(kray2 && false){
             if (left)
             {
-                A[2][t] = (lam / hx);
-                A[3][t + 1] = (-lam / hx);//-du/dx // t -> t+1 (->)// 
+                A[2][t] =   (lam / hx);
+                A[3][t] = (-lam / hx);//-du/dx // t -> t+1 (->)// 
+                b[t] = -theta(i, 0);
+                //std::cout << t + 1 << ' ' << b[t] << '\n';
             }
             else if(right || inner_vert)
             {
-                A[2][t] = (-lam / hx);
-                A[1][t - 1] = (lam / hx);//du/dx // t -> t-1 (<-) // 
+                A[2][t] = (lam / hx);
+                A[1][t-1] = (-lam / hx);//du/dx // t -> t-1 (<-) // 
+
+                b[t] = theta(i, 0);
+                //std::cout << t + 1 << ' ' << b[t] << '\n';
             }
             else if(top || inner_hor)
             { 
-                A[2][t] = (-lam / hy);
-                A[0][t] = (lam / hy);//du/dy // t -> t - nx (v)// A[0][t] = du/dy (1/hy) 
+                A[2][t] = (lam / hy);
+                A[0][t - offset] = (-lam / hy);//du/dy // t -> t - nx (v)// A[0][t] = du/dy (1/hy) 
+
+                b[t] = theta(j, 1);
+                //std::cout << t + 1 << ' ' << b[t] << '\n';
             }
             else if (bottom)
             {
                 A[2][t] = (lam / hy);
                 A[4][t] = (-lam / hy);//-du/dy // t -> t + nx (^)// A[4][t] = -du/dy (-1/hy) 
+
+                b[t] = -theta(j, 1);
+               // std::cout << t + 1 << ' ' << b[t] << '\n';
             }
-            b[t] = theta;
-         }
+         }         
       }
    }
-}
-
-real ElipticEquation::ug(int i, int j)
-{
-   if (x0 + i * hx > xb && y0 + j * hy > yb)
-      return 0.;
-   real x1 = x0 + i * hx;
-   real y1 = y0 + j * hy;
-   //return 1;
-   return x1 + y1;
-   //return x1 * x1 + y1 * y1;                              // u^2
-   //return x1 * x1 * x1 + y1 * y1 * y1;                    // u^3
-   //return x1 * x1 * x1 * x1 + y1 * y1 * y1 * y1;          // u^4
 }
 
 void ElipticEquation::CheckError()
@@ -89,9 +111,10 @@ void ElipticEquation::CheckError()
    std::ifstream sol("Solution.txt");
    real sum = 0;
    real buf = 0;
-   for (size_t i = 0; i < size; i++)
+   for (int i = 0; i < size; i++)
    {
       sol >> buf;
+      std::cout << buf << " - " << ug(i % nx, i / nx) << '\n';
       buf -= ug(i % nx, i / nx);
       sum += buf * buf;
    }
@@ -101,7 +124,7 @@ void ElipticEquation::CheckError()
 real ElipticEquation::norm()
 {
    real sum = 0;
-   for (size_t i = 0; i < size; i++)
+   for (int i = 0; i < size; i++)
       sum += ug(i % offset, i / offset) * ug(i % offset, i / offset);
    return sqrt(sum);
 }
@@ -110,25 +133,26 @@ void ElipticEquation::CreateA()
 {
    int xi, yj;
    bool outside;
-   for (size_t t = 0; t < size; t++)
+   for (int t = 0; t < size; t++)
    {  
       xi = t % nx; yj = t / nx;
 
       outside = x0 + xi * hx > xb && y0 + yj * hy > yb;
 
-      if (t < size - offset) A[0][t] =          ( outside ? 0. : PrimeApproxY() );
-      if (t < size - 1)      A[1][t] =          ( outside ? 0. : PrimeApproxX() );
-                             A[2][t] =          ( outside ? 0. : LaplasApprox() );
-      if (t >= 1)            A[3][t - 1] =      ( outside ? 0. : PrimeApproxX() );
-      if (t >= offset)       A[4][t - offset] = ( outside ? 0. : PrimeApproxY() );
+      if (t >= offset) A[0][t - offset] = ( outside ? 0. : PrimeApproxY() );
+      if (t >= 1)           A[1][t - 1] = ( outside ? 0. : PrimeApproxX() );
+                                A[2][t] = ( outside ? 0. : LaplasApprox() );
+      if (t < size - 1)         A[3][t] = ( outside ? 0. : PrimeApproxX() );
+      if (t < size - offset)    A[4][t] = ( outside ? 0. : PrimeApproxY() );
 
       b[t] = outside ? 0. : f(xi, yj);
    } 
 
    UchetKraevyh();
 
- //  for (size_t i = 0; i < size; i++)
- //     std::cout << b[i] << '\n';
+   for (size_t i = 0; i < size; i++)
+      std::cout << b[i] << '\n';
+
 
 #if !DYNAMIC_MESH
 #else // DYNAMIC_MESH
@@ -137,6 +161,7 @@ void ElipticEquation::CreateA()
 #endif
 
 }
+
 
 inline real ElipticEquation::PrimeApproxX()
 {

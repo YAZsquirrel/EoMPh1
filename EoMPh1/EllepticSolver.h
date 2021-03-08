@@ -17,7 +17,7 @@ private:
    real xb, yb;      // границы "вырезанного" пр€моугольника
    size_t nx, ny;		// количество узлов на пр€мой
    std::vector<real> mesh;
-   real gamma = 1, lam = 1, theta = 1;
+   real gamma = 1, lam = 1, theta(int ij, bool xy);
    real PrimeApproxX();	// ѕриближение производных
    real PrimeApproxY();
    real LaplasApprox();
