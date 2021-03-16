@@ -5,10 +5,11 @@ real ElipticEquation::f(int i, int j)
    real x = x0 + i * hx;
    real y = y0 + j * hy;
    //return 1;                                                         // u^0
-   //return x + y;                                                     // u^1
+   return x + y;                                                     // u^1
    //return x * x + y * y - 4;                                         // u^2
    //return x * x * x + y * y * y - 6 * (x + y) ;                      // u^3
    return x * x * x * x + y * y * y * y - 12 * (x * x + y * y);      // u^4
+   return 2 * (sin(x) + cos(y));
 }
 
 
@@ -19,10 +20,11 @@ real ElipticEquation::ug(int i, int j)
    real x = x0 + i * hx;
    real y = y0 + j * hy;
    //return 1;                               // u^0
-   //return x + y;                           // u^1
+   return x + y;                           // u^1
    //return x * x + y * y;                   // u^2
    //return x * x * x + y * y * y;           // u^3
    return x * x * x * x + y * y * y * y;   // u^4
+   return sin(x) + cos(y);
 }
 
 real ElipticEquation::theta(int ij, bool xy)
@@ -30,8 +32,8 @@ real ElipticEquation::theta(int ij, bool xy)
    real th = xy ? x0 + ij * hx : y0 + ij * hy;
 
    //return 0;                    // u^0
-   //return 1; // du/dn           // u^1
-   return 2 * th;               // u^2
+   return 1; // du/dn           // u^1
+   //return 2 * th;               // u^2
    //return 3 * th * th;          // u^3
    //return 4 * th * th * th;     // u^4
 }
@@ -69,7 +71,7 @@ void ElipticEquation::UchetKraevyh()
             b[t] = ug(i, j);
          }
 
-         if(kray2 && false){
+         if(kray2){
             if (left)
             {
                 A[2][t] =   (lam / hx);
@@ -118,7 +120,8 @@ void ElipticEquation::CheckError()
       buf -= ug(i % nx, i / nx);
       sum += buf * buf;
    }
-   std::cout << "\n\nError: " << sqrt(sum) / norm();
+   std::cout.precision(7);
+   std::cout << "\n\nError: " << std::scientific << sqrt(sum) / norm();
 }
 
 real ElipticEquation::norm()
@@ -161,7 +164,6 @@ void ElipticEquation::CreateA()
 #endif
 
 }
-
 
 inline real ElipticEquation::PrimeApproxX()
 {

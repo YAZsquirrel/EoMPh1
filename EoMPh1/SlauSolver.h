@@ -12,7 +12,7 @@ private:
    int n, m, maxiter = 100000;
    real** Mat;
    real* b;
-   real eps = 1e-14f, w = 1.51f;
+   real eps = 1e-16f, w = 1.51f;
    real* x;
    real discr;
    real discrepancy();       //относительная невязка

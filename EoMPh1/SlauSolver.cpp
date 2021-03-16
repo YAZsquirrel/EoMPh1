@@ -80,7 +80,7 @@ real Matrix::norm(real* vec, int n)
 void Matrix::writeSolution()
 {
    std::ofstream fS("Solution.txt");
-   fS.precision(16);
+   fS.precision(14);
    for (int i = 0; i < n; i++)
-      fS << x[i] << '\n';
+      fS << std::scientific <<  x[i] << '\n';
 }
